@@ -8,15 +8,13 @@ const Home = () => {
     const [data, setData] = useState([]);
     const [uploadedData, setUploadedData] = useState(false);
     const [persona, setPersona] = useState([]);
-    const [numPerson, setNumPerson] = useState(0);
-    const [showList, setShowList] = useState([]);
+    const [numPerson, setNumPerson] = useState();
 
     //Función donde modifico y guardo el archivo csv
     const uploadDate = ( data ) => {
-       // console.log(data);
         data.shift();                  
         setData(data);                  
-        setUploadedData(true);         
+        setUploadedData(true);     
     }
 
     const getPersona = ( nombre ) => {
@@ -25,6 +23,8 @@ const Home = () => {
                 setPersona(item);
             }
         } );
+
+        setNumPerson('');
     }
 
     const getCosWithPerson = () => {
@@ -56,19 +56,32 @@ const Home = () => {
             cos.toFixed(2);
             cos = Math.round(cos);
 
-            var arregloCosenos = {
-                'persona': item[1],
-                'coseno': cos
-            }
-
+            var arregloCosenos = [
+                item[1],
+                cos
+            ]
             persona[31].push(arregloCosenos);  
         });
+
+        var arreglo = persona[31];
+        arreglo = arreglo.sort( ( a, b ) => {
+            return a[1] < b[1] ? 1 : -1
+        })
+        arreglo.shift();
+        console.log(persona[31]);
     }
+    
 
     const onChangeRecomendations = (number) =>{
         setNumPerson(number);
-    }
 
+        var lista = persona[31];
+        persona[31] = [];
+
+        for (let index = 0; index < number; index++) {
+            persona[31].push(lista[index]);
+        }
+    }
 
     useEffect ( () => {
         getCosWithPerson();
@@ -81,14 +94,13 @@ const Home = () => {
                 label="Por favor, adjunte el archivo CSV que quiere visualizar"            
                 onFileLoaded={uploadDate}                                                  
             />
-
             {uploadedData ? 
             <section className="Personas appear">
 
                 <div className="PersonaUno">                                                                                                                     
                     <p>Seleccionar el nombre de la persona</p>
                     <select defaultValue="" name="PersonaUno" required onChange={ (event) => getPersona(event.target.value)}>
-                        <option defaultValue="." value="." selected> Seleccionar</option>
+                        <option defaultValue="" value="" selected disabled> Seleccionar</option>
                         {
                             data.map ( ( item ) => {
                                 return(
@@ -101,15 +113,28 @@ const Home = () => {
                 </div>
                     <div className="InputPersonas">
                     <p> Número de personas que se aparecen a <strong>{persona[1]}</strong> </p>
-                    <input type="number" placeholder="Inserte el número aquí" max='24' onChange={(e) => onChangeRecomendations(e.target.value)}/>
+                    <input type="number" placeholder="Inserte el número aquí" max='24' onChange={(e) => onChangeRecomendations(e.target.value)} value={numPerson}/>
                 </div>
             </section>
             :
             ''
             }
+            <article className="list">
 
             {
+                persona[31] && numPerson > 0 ?
+                persona[31].map( ( item ) => {
+                    return(
+                        <div key={item[0]} className="list__item">
+                            <p>{item[0]}</p>
+                            <p>{item[1]}</p>
+                        </div>
+                    )
+                })
+                : ''
             }
+
+            </article>
         </section>
     )
 
